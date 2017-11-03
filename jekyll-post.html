@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Le blog de Cyril Bernard</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <script src="https://use.fontawesome.com/646c63ee45.js"></script>
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600|Poppins:400,700|Inconsolata:400,700" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/cyril.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row">
+      <div class="three columns sidebar">
+        <div class="avatar"><img class="u-max-full-width" src="images/lizmap2.png"></div>
+        <h2 class="centered">Cyril Bernard</h2>
+        <p class="centered">GIS Tech @ <a href="http://www.cefe.cnrs.fr">CEFE-CNRS</a><br/><i class="fa fa-map-marker" aria-hidden="true"></i> Montpellier</a></p>
+        <hr/>
+        <!--
+        -->
+        <ul class="menu">
+          <li>» <a href="/">Blog</a></li>
+          <li>» <a href="/data">Data</a></li>
+          <li>» <a href="/about">About</a></li>
+        </ul>
+        <hr/>
+        <!--
+        <div id="social">
+          <div id="stalker">
+            <a title="cybernar on Github" href="https://github.com/cybernar"><i class="fa fa-github-square fa-lg"></i></a>
+            <a title="cyber_nard on Twitter" href="https://twitter.com/cyber_nard"><i class="fa fa-twitter-square fa-lg"></i></a>
+          </div>
+        </div>
+        -->
+        <p>
+          <a title="Email me" href="mailto:cyril.bernard@cefe.cnrs.fr"><i class="fa fa-envelope-square fa-2x" aria-hidden="true"></i></a>
+          <a title="cybernar on Github" href="https://github.com/cybernar"><i class="fa fa-github-square fa-2x"></i></a>
+          <a title="cyber_nard on Twitter" href="https://twitter.com/cyber_nard"><i class="fa fa-twitter-square fa-2x"></i></a>
+        </p>
+
+      </div>
+      <div class="nine columns content">
+        <h1>Vector spatial data in R (1/2) &mdash; the basics with sp</h1>
+        <p>June 14, 2016<p>
+
+        <div id="post">
+
+          <h2 id="some-gps-coordinates">Some GPS coordinates</h2>
+
+          <p>We start from a <code class="highlighter-rouge">data.frame</code> object with 5 rows and 4 columns. The numeric vector lon and lat give the GPS coordinates of 5 points, in decimal degrees (WGS84) .</p>
+
+          <pre><code class="language-r" data-lang="r">library(sp)
+lon <- c(3.86379, 3.86291, 3.86243, 3.86220, 3.86314)
+lat <- c(43.63838, 43.63878, 43.63863, 43.63821, 43.63810)
+name <- c("AA", "BB", "CC", "DD", "EE")
+color <- c("green", "green", "green", "blue", "blue")
+df <- data.frame(name, lon, lat, color)</code></pre>
+
+          <h2 id="the-spatialpoints-class">The SpatialPoints class</h2>
+
+          <p>SpatialPoints class is a data structure to store points : only the “spatial” part, not the “attributes” part.
+          To build a SpatialPoints object, we just need :</p>
+
+          <ul>
+            <li>a 2-columns matrix (with XY coordinates, or “longitude latitude” if you prefer)</li>
+            <li>if possible, a CRS object made of the <strong>proj4 definition</strong> of the coordinate reference system. We found the WGS84 on epsg.io website, from this URL : <a href="http://epsg.io/4326">http://epsg.io/4326</a>.</li>
+          </ul>
+
+          <pre><code class="language-r" data-lang="r">
+matcoords <- as.matrix(df[,c("lon","lat")])
+spts <- SpatialPoints(matcoords, proj4string = CRS("+proj=longlat +datum=WGS84 +no_defs"))
+# the following proj4string definition with EPSG ID is equivalent to the explicit definition ...
+spts <- SpatialPoints(matcoords, proj4string = CRS("+init=EPSG:4326"))
+slotNames(spts)
+          </code></pre>
+
+
+          <h2 id="distances-between-the-points">Distances between the points</h2>
+
+          <p>The <code class="highlighter-rouge">spDists</code> function makes easy to measures distances between points, whether their coordinates are in meters or degrees. If the coordinates are in degrees, we will put the <code class="highlighter-rouge">longlat</code> parameter to <strong>TRUE</strong>, and the output will be in kilometers.
+          Let us measure the distance between all the points and themselves.</p>
+
+          <pre><code class="language-r" data-lang="r">
+matdist_meters <- spDists(spts, y=spts, longlat=T) * 1000
+matdist_meters
+          </code></pre>
+
+          <p>We can also measure the distance between consecutive points (the segments).</p>
+
+          <pre><code class="language-r" data-lang="r">
+lsegments_meters <- spDists(spts, longlat=T, segments=T) * 1000
+lsegments_meters
+          </code></pre>
+
+          <h2 id="building-a-spatialpointdataframe-from-a-dataframe-with-coordinates">Building a SpatialPointDataFrame from a data.frame with coordinates</h2>
+          <p>It can be achieved with coordinates method with the name of X and Y columns.</p>
+
+          <pre><code class="language-r" data-lang="r">
+spts_df <- df
+# turn a data.frame into a SpatialPointsDataFrame by providing X Y columns
+coordinates(spts_df) <- c("lon","lat") 
+# define the CRS (optional)
+proj4string(spts_df) <- CRS("+init=EPSG:4326")
+slotNames(spts_df)
+          </code></pre>
+
+          <h2 id="saving-the-points-under-kml-and-shapefile-format">Saving the points under KML and Shapefile format</h2>
+          <p>The maptools package provide functions to save <code class="highlighter-rouge">Spatial\*DataFrame</code> under .kml and .shp formats.
+          KML files can refer to image URLs as decoration for the points. See <a href="https://sites.google.com/site/gmapsdevelopment/">https://sites.google.com/site/gmapsdevelopment/</a> to explore various icons.</p>
+
+          <pre><code class="language-r" data-lang="r">
+library(maptools)
+# omit the extension to writer some_points.shp ...
+writePointsShape(spts_df,"some_points")
+# let us create 3 green markers and 2 blue markers
+url_color_markers <- paste0("http://maps.google.com/mapfiles/ms/micons/",spts_df$color,".png")
+kmlPoints(spts_df,kmlfile="points_TE.kml",name=spts_df$name, icon=url_color_markers)
+          </code></pre>
+
+          <h2 id="join-the-dots--creating-spatiallines-and-spatiallinesdataframe-objects-from-scratch">Join the dots ! Creating SpatialLines and SpatialLinesDataFrame objects from scratch</h2>
+          <p>The following model from ASDAR book (<a href="http://www.asdar-book.org/">http://www.asdar-book.org/</a>), p. 40 shows us the composition of SpatialPolygons and SpatialLines.</p>
+
+          <p><img src="/images/asdar_p40.png" alt="ASDAR p.40" /></p>
+
+          <p>A <strong>SpatialLines</strong> object can be made from a <strong>list of Lines</strong> objects.
+          A <strong>Lines</strong> object is a <strong>list of Line</strong> objects .
+          A <strong>Line object</strong> is made of a <strong>matrix of coordinates</strong>, just as a set of ordered points.</p>
+
+          <p><strong>Lines</strong> in R is like a <em>Polyline</em> feature in a Shapefile, or a <em>MULTILINESTRING</em> feature in WKT notation : <a href="https://en.wikipedia.org/wiki/Well-known_text#Geometric_objects">https://en.wikipedia.org/wiki/Well-known_text#Geometric_objects</a>)</p>
+
+          <pre><code class="language-r" data-lang="r">
+# build 2 Lines object with ID slot = L1 and L2
+matcoords1 <- as.matrix(df[,c("lon","lat")])
+matcoords2 <- cbind(runif(5, -0.001, 0.001) + 3.8676, runif(5, -0.001, 0.001) + 43.6423)
+line_1 <- Line(matcoords1)
+line_2 <- Line(matcoords2)
+lines_1 <- Lines(list(line_1), "L1")
+lines_2 <- Lines(list(line_2), "L2")
+splines <- SpatialLines(list(lines_1, lines_2))
+str(splines)
+          </code></pre>
+
+          <p>A <strong>SpatialLinesDataFrame</strong> object is the combination between a <strong>SpatialLines</strong> object and a <strong>data.frame</strong>.
+          Use the <strong>ID slot</strong> from the SpatialLines object and the <strong>row names</strong> from the data.frame to make them match.</p>
+
+          <pre><code class="language-r" data-lang="r">
+# build a data.frame object with 2 columns and ID as the rows names.
+NAME=c("LINE1", "RANDOM2")
+LENGTH_M = SpatialLinesLengths(splines, longlat=T) * 1000
+df_demo <- data.frame(NAME, LENGTH_M)
+row.names(df_demo) <- c("L1","L2")
+splines_df <- SpatialLinesDataFrame(splines, df_demo)
+## save the SpatialLinesDataFrame as a shapefile
+writeLinesShape(splines_df, fn="some_lines")
+          </code></pre>
+
+          <h2 id="coordinates-transformation">Coordinates transformation</h2>
+          <p>Transforming coordinates from a system to another require the <code class="highlighter-rouge">rgdal</code> package. <code class="highlighter-rouge">rgdal</code> provides drivers for an important number of raster and vector formats (see all the formats on the website of the GDAL library and its OGR sub-library). It also provides the <strong>spTransform</strong> function that makes possible to transform coordinates. 
+          It is possible to apply the <strong>spTransform</strong> on any <code class="highlighter-rouge">Spatial*</code> or <code class="highlighter-rouge">Spatial*DataFrame</code> class. The system coordinates of the input object must have been defined with <strong>proj4string</strong> parameter. When calling <strong>spTransform</strong> we only have to specify output coordinate system.</p>
+
+          <pre><code class="language-r" data-lang="r">
+# check input CRS
+proj4string(spts_df)
+# transformation to RGF93 / Lambert93
+spts_df_l93 <- spTransform(spts_df, CRS("+init=EPSG:2154"))
+spts_df_l93@coords
+          </code></pre>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
