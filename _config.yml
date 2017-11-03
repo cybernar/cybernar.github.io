@@ -1,0 +1,12 @@
+# Site settings
+title: Geospatial machins
+email: cyril.bernard@cefe.cnrs.fr
+description: > # this means to ignore newlines until "baseurl:"
+  A messy blog about GIS things.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://cybernar.github.io" # the base hostname & protocol for your site
+twitter_username: cyber_nard
+github_username:  cybernar
+
+# Build settings
+markdown: kramdown
