@@ -174,4 +174,4 @@ writeOGR(shp_grid2,".","result_grid_aggr",driver="ESRI Shapefile")
 
 We obtain a new shapefile from which we can easily calculate the percentage of wood areas in each cell grid.
 
-![Wood percentage per cell in QGIS](qgis_aggrwood.png)
+![Wood percentage per cell in QGIS](/images/qgis_aggrwood.png)
