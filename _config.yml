@@ -1,5 +1,5 @@
 # Site settings
-title: Geospatial machins
+name: Geospatial machins
 email: cyril.bernard@cefe.cnrs.fr
 description: > # this means to ignore newlines until "baseurl:"
   A messy blog about GIS things.
@@ -10,3 +10,4 @@ github_username:  cybernar
 
 # Build settings
 markdown: kramdown
+highlighter: rouge
