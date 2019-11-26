@@ -1,5 +1,5 @@
 # Site settings
-name: Geospatial machins
+name: Geo-Notes
 email: cyril.bernard@cefe.cnrs.fr
 description: > # this means to ignore newlines until "baseurl:"
   A messy blog about GIS things.
