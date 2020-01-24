@@ -51,18 +51,20 @@ lsegments_meters
 ```
 
 ## Building a SpatialPointDataFrame from a data.frame with coordinates
+
 It can be achieved with coordinates method with the name of X and Y columns.
 
 ```r
 spts_df <- df
 # turn a data.frame into a SpatialPointsDataFrame by providing X Y columns
-coordinates(spts_df) <- c("lon","lat") 
+coordinates(spts_df) <- c("lon","lat")
 # define the CRS (optional)
 proj4string(spts_df) <- CRS("+init=EPSG:4326")
 slotNames(spts_df)
 ```
 
 ## Saving the points under KML and Shapefile format
+
 The maptools package provide functions to save `Spatial\*DataFrame` under .kml and .shp formats.
 KML files can refer to image URLs as decoration for the points. See <https://sites.google.com/site/gmapsdevelopment/> to explore various icons.
 
@@ -76,9 +78,10 @@ kmlPoints(spts_df,kmlfile="points_TE.kml",name=spts_df$name, icon=url_color_mark
 ```
 
 ## Join the dots ! Creating SpatialLines and SpatialLinesDataFrame objects from scratch
+
 The following model from ASDAR book (<http://www.asdar-book.org/>), p. 40 shows us the composition of SpatialPolygons and SpatialLines.
 
-![](/images/asdar_p40.png)
+![Heritage](/images/asdar_p40.png)
 
 A **SpatialLines** object can be made from a **list of Lines** objects.
 A **Lines** object is a **list of Line** objects .
@@ -113,7 +116,8 @@ writeLinesShape(splines_df, fn="some_lines")
 ```
 
 ## Coordinates transformation
-Transforming coordinates from a system to another require the `rgdal` package. `rgdal` provides drivers for an important number of raster and vector formats (see all the formats on the website of the GDAL library and its OGR sub-library). It also provides the **spTransform** function that makes possible to transform coordinates. 
+
+Transforming coordinates from a system to another require the `rgdal` package. `rgdal` provides drivers for an important number of raster and vector formats (see all the formats on the website of the GDAL library and its OGR sub-library). It also provides the **spTransform** function that makes possible to transform coordinates.
 It is possible to apply the **spTransform** on any `Spatial*` or `Spatial*DataFrame` class. The system coordinates of the input object must have been defined with **proj4string** parameter. When calling **spTransform** we only have to specify output coordinate system.
 
 ```r
@@ -123,4 +127,3 @@ proj4string(spts_df)
 spts_df_l93 <- spTransform(spts_df, CRS("+init=EPSG:2154"))
 spts_df_l93@coords
 ```
-

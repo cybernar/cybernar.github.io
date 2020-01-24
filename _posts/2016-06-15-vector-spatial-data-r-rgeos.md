@@ -6,7 +6,7 @@ date: 2016-06-15
 
 # PART 1. Distances
 
-## Input data 
+## Input data
 
 In this 1st example we will use 2 shapefiles as input data :
 
@@ -55,7 +55,7 @@ is.na(dist_mat_self) <- (dist_mat_self==0)
 
 ## HOWTO find the closest polygons from each points, and its distance 
 
-Now we have 553 x 12 matrix with distances. For each 553 points, we want to find the closest polygon. 
+Now we have 553 x 12 matrix with distances. For each 553 points, we want to find the closest polygon.
 
 ```r
 # for each point, find indice of the minimum distance
@@ -67,7 +67,7 @@ TOID <- shp_target$OBJECTID
 NEARID <- TOID[ind_min]
 # get minimum distance
 # mi will be an indices matrix to find the distance to the nearest target
-# with 1: row indices(sequence from 1 to N)  and 2:col indices(from which.min) 
+# with 1: row indices(sequence from 1 to N)  and 2:col indices(from which.min)
 mi <- cbind(i=seq.int(length(ind_min)), ind_min)
 NEARDIST <- dist_mat[mi]
 ```
@@ -85,7 +85,7 @@ writeOGR(shp_result,".","result_dist2",driver="ESRI Shapefile")
 
 ## Input data
 
-We have two polygon layers : the first layer (`Parc_Jardin.shp`) contain woods, the second layer (`grid_500m.shp`) is a grid. 
+We have two polygon layers : the first layer (`Parc_Jardin.shp`) contain woods, the second layer (`grid_500m.shp`) is a grid.
 
 ```r
 # intersection between grid polygons & data polygons (Parc_Jardin)
@@ -106,7 +106,7 @@ We want to know the total area of woods by grid cell. This can be achieved with 
 ## The gIntersection function : intersecting two polygon layers
 
 ```r
-# tip for optimization : keep only grid cells that intersects data 
+# tip for optimization : keep only grid cells that intersects data
 shp_grid_over_data <- shp_grid[shp_data,]
 
 # then, intersect !
@@ -117,7 +117,7 @@ slotNames(result)
 
 The class of the resulting object is SpatialPolygons ... without data frame ! So, how to find original attributes from the intersected polygons ?
 
-## HOWTO build a data frame for the resulting SpatialPolygons ? 
+## HOWTO build a data frame for the resulting SpatialPolygons ?
 
 We will use the polygons ID and the original layers data frames.
 
