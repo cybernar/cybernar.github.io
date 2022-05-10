@@ -6,7 +6,7 @@ date: 2022-02-22
 
 # Installation et configuration de Lizmap avec Nginx sur Debian 11 
 
-Ce mémo décrit l'installation de QGIS-Server 3.16 et Lizmap 3.4 sur Debian 11 "Bullseye".
+Ce mémo décrit l'installation de QGIS-Server 3.22 et Lizmap 3.4 sur Debian 11 "Bullseye".
 
 Installation effectuée en janv. 2022, avec la version 7.4 de PHP.
 
