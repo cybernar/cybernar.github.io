@@ -4,7 +4,7 @@ title: "Effective Mesh Size (CBC method) with Grass GIS"
 date: 2021-09-07
 ---
 
-Dans ce post, nous allons utiliser le logiciel Grass GIS pour calculer l'indicateur de fragmentation mEff CBC (Effective Meshsize, CBC method) sur un jeu de données raster : l'occupation du sol issue du produit Theia OSO [Carte d'Occupation des Sols de la France Métropolitaine](https://www.theia-land.fr/product/carte-doccupation-des-sols-de-la-france-metropolitaine/).
+Dans ce post, nous allons utiliser le logiciel Grass GIS pour calculer l'indicateur de fragmentation MEff CBC (Effective Meshsize, CBC method) sur un jeu de données raster : l'occupation du sol issue du produit Theia OSO [Carte d'Occupation des Sols de la France Métropolitaine](https://www.theia-land.fr/product/carte-doccupation-des-sols-de-la-france-metropolitaine/).
 
 ## Le contexte
 
@@ -32,9 +32,9 @@ Pourquoi utiliser le logiciel Grass GIS dans ce cas ? Parce que Grass GIS reste 
 
 ### Fichiers en entrée :
 
-    `OCS_2018_CESBIO.tif` = Couche occupation du sol CESBIO
-    `grid-WGS84.shp` = grille WGS84 
-    `emprise_fr.shp` = emprise zone analyse (pour masquer raster)
+- `OCS_2018_CESBIO.tif` = Couche occupation du sol CESBIO
+- `grid-WGS84.shp` = grille WGS84 
+- `emprise_fr.shp` = emprise zone analyse (pour masquer raster)
 
 ### Import données
 
@@ -76,11 +76,11 @@ Pourquoi utiliser le logiciel Grass GIS dans ce cas ? Parce que Grass GIS reste 
 ## Le Script shell pour GRASS GIS
 
 ```bash
-    r.in.gdal -o input=D:\Travail\Support\Leandro\OCS_2018_CESBIO.tif output=OCS_2018_CESBIO
-    v.in.ogr -o input=D:\Travail\Support\Leandro\FR\emprise_fr.shp output=emprise_5km
+    r.in.gdal -o input=D:\Travail\Support\OCS_2018_CESBIO.tif output=OCS_2018_CESBIO
+    v.in.ogr -o input=D:\Travail\Support\FR\emprise_fr.shp output=emprise_5km
 
     # importer grille vecteur en lambert 93 => nelle couche vecteur grid_L93
-    v.import input='C:\Support\Leandro\grid-WGS84.shp' layer=grid-WGS84 output=grid_L93
+    v.import input='C:\Support\grid-WGS84.shp' layer=grid-WGS84 output=grid_L93
     # ajoute champ id_int INTEGER
     v.db.addcolumn map=grid_L93@PERMANENT columns='id_int INT'
     v.db.update map=grid_L93@PERMANENT column=id_int query_column=id
@@ -90,10 +90,10 @@ Pourquoi utiliser le logiciel Grass GIS dans ce cas ? Parce que Grass GIS reste 
     v.to.rast input=emprise_5km@PERMANENT type=area output=rast_emprise_5km use=val
 
     r.mapcalc --overwrite expression=OCS_cat131819 = (OCS_cat131819 = OCS_2018_CESBIO@PERMANENT == 13 || OCS_2018_CESBIO@PERMANENT == 18 || OCS_2018_CESBIO@PERMANENT == 19) && rast_emprise_5km@PERMANENT == 1
-    r.out.gdal input=OCS_cat131819@PERMANENT output=D:\Travail\Support\Leandro\result131819_clip.tif format=GTiff type=Byte createopt=COMPRESS=DEFLATE,PREDICTOR=2 nodata=255
+    r.out.gdal input=OCS_cat131819@PERMANENT output=D:\Travail\Support\result131819_clip.tif format=GTiff type=Byte createopt=COMPRESS=DEFLATE,PREDICTOR=2 nodata=255
     r.mapcalc --overwrite expression=OCS_cat131819_null = OCS_cat131819@PERMANENT == 1 ? 1 : null()
     r.clump -d input=OCS_cat131819_null@PERMANENT output=OCS_cat131819_clump
-    r.stats -a -c input=grid_rast@PERMANENT,OCS_cat131819_clump@PERMANENT output=C:\Support\Leandro\FR\stats_completes.txt separator=tab null_value=NA
+    r.stats -a -c input=grid_rast@PERMANENT,OCS_cat131819_clump@PERMANENT output=C:\Support\FR\stats_completes.txt separator=tab null_value=NA
 ```
 
 ## Script R pour agréger les données 
@@ -117,30 +117,31 @@ Pourquoi utiliser le logiciel Grass GIS dans ce cas ? Parce que Grass GIS reste 
     # calculer tableau avec surf complete des patchs
     # remarque : enlever id_patch=NA (pixels hors patches) avant de calculer sum 
     tbl_patch_cmpl <- tbl_stats_grass %>% 
-    filter(!is.na(id_patch)) %>%
-    group_by(id_patch) %>% 
-    summarise(a_cmpl = sum(a), nb_cells = n())
+        filter(!is.na(id_patch)) %>%
+        group_by(id_patch) %>% 
+        summarise(a_cmpl = sum(a), nb_cells = n())
     tbl_patch_cmpl
 
     # calculer tableau avec surf totale des mailles (patch et non patch)
     # remarque : enlever id=NA (pixels hors de la grille) 
     tbl_msize  <- tbl_stats_grass %>%
-    filter(!is.na(id)) %>%
-    group_by(id) %>% 
-    summarise(aT = sum(a))
+        filter(!is.na(id)) %>%
+        group_by(id) %>% 
+        summarise(aT = sum(a))
     tbl_msize
 
     # jointure aI-acpmlI + calcul produit
     tbl_stats_2 <- tbl_stats_grass %>% 
-    filter(!is.na(id) & !is.na(id_patch)) %>%
-    left_join(tbl_patch_cmpl, by="id_patch")
+        filter(!is.na(id) & !is.na(id_patch)) %>%
+        left_join(tbl_patch_cmpl, by="id_patch")
     tbl_stats_2 <-  mutate(tbl_stats_2, a2=a*a_cmpl)
     tbl_stats_2
 
     # calcule sommpe de produits (aires interieur / complet)
     tbl_stats_grid <- tbl_stats_2 %>% group_by(id) %>% 
-    summarise(sum_a2 = sum(a2, na.rm = TRUE), 
-                patches=n(), sum_aI = sum(a))
+        summarise(
+            sum_a2 = sum(a2, na.rm = TRUE), 
+            patches=n(), sum_aI = sum(a))
     tbl_stats_grid
 
     # calculer eff mesh size
@@ -160,6 +161,6 @@ Pourquoi utiliser le logiciel Grass GIS dans ce cas ? Parce que Grass GIS reste 
 
 ```
 
-## Un module Python pour GRASS GIS
+## Tryout to write Python Module for Effective Mesh Size CBC on GRASS GIS
 
-Voir le GIST : <https://gist.github.com/cybernar/148022c2b7e9e6b29d7ff11a6d83a527>
+See GIST : <https://gist.github.com/cybernar/148022c2b7e9e6b29d7ff11a6d83a527>
