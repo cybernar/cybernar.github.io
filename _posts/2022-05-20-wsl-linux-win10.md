@@ -1,4 +1,8 @@
-# Installer WSL2 sur Windows 10
+---
+layout: post
+title: "Installer WSL2 sur Windows 10"
+date: 2022-05-20
+---
 
 ## Résumé (pour ceux qui n'ont pas le temps de tout lire).
 
