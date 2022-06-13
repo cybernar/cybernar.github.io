@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Configuration de Lizmap et QGIS Server sur nginx"
+title: "Premiers pas sur nginx"
 date: 2022-02-22
 ---
 
